@@ -25,11 +25,9 @@ class TicketsAPIView(GenericAPIView, ListModelMixin, CreateModelMixin):
         serializer.save(author_id=self.request.user.id)
 
     def get(self, request, *args, **kwargs):
-        if self.request.user.is_staff:
-            return self.list(request, *args, **kwargs)
-        else:
+        if not self.request.user.is_staff:
             self.queryset = Ticket.objects.filter(author=self.request.user)
-            return self.list(request, *args, **kwargs)
+        return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
@@ -41,17 +39,15 @@ class TicketsAPIDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin,
     permission_classes = [IsOwnerOfTicket | IsAdminUser]
 
     def get(self, request, *args, **kwargs):
-        print(self.permission_classes)
         return self.retrieve(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         serializer.save(status=self.request.data['status'])
 
     def put(self, request, *args, **kwargs):
-        if self.request.user.is_staff:
-            return self.update(request, *args, **kwargs)
-        else:
+        if not self.request.user.is_staff:
             return Response({"Error": "You have no permission to update"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
@@ -63,8 +59,6 @@ class MessageAPIView(GenericAPIView, ListModelMixin, CreateModelMixin):
     permission_classes = [IsOwnerOfTicket | IsAdminUser]
 
     def get(self, request, *args, **kwargs):
-        ticket = Ticket.objects.get(id=self.kwargs['pk'])
-        self.queryset = Message.objects.filter(ticket=ticket).order_by('time_created')
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -75,6 +69,10 @@ class MessageAPIView(GenericAPIView, ListModelMixin, CreateModelMixin):
 
         send_new_message.apply_async((user, data, pk))
         if self.request.user.is_staff:
-            print(author_email)
             email_notification.apply_async((author_email, request.data['message']))
         return Response(status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        ticket = Ticket.objects.get(id=self.kwargs['pk'])
+        return Message.objects.filter(ticket=ticket).order_by('time_created')
+

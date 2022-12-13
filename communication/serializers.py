@@ -6,7 +6,7 @@ from communication.models import Status
 
 class TicketSerializer(serializers.ModelSerializer):
     tittle = serializers.CharField(max_length=120, required=True)
-    status = serializers.ChoiceField(Status.choices, required=False)
+    status = serializers.ChoiceField(Status.choices(), required=False)
     author_id = serializers.IntegerField(required=False)
 
     class Meta:

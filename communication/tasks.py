@@ -30,6 +30,5 @@ def send_new_message(user, data, pk):
 
 @celery_app.task
 def email_notification(user_email, text):
-    print("\nHERE 1\n")
     send(user_email=user_email, text=text)
 

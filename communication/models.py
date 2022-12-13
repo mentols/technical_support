@@ -1,23 +1,15 @@
-import datetime
-
 import django
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
-
-class Status(models.TextChoices):
-    RESOLVED = 'RESLV', _('Resolved')
-    UNRESOLVED = 'UNRES', _('Unresolved')
-    FROZEN = 'FROZN', _('Frozen')
+from communication.utils import Status
 
 
 class Ticket(models.Model):
-    status = models.CharField(
-        max_length=5,
-        choices=Status.choices,
-        default=Status.UNRESOLVED,
-        null=False
+    status = models.TextField(
+        max_length=254,
+        choices=Status.choices(),
+        default=Status.U,
     )
     tittle = models.CharField(max_length=255, null=True)
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -28,7 +20,7 @@ class Ticket(models.Model):
 
 class Message(models.Model):
     message_author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    message = models.CharField(max_length=10000, null=True)
+    message = models.TextField(null=False)
     time_created = models.DateTimeField(default=django.utils.timezone.now)
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
 
