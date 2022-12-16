@@ -13,9 +13,6 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = ('id', 'status', 'tittle', 'author_id')
 
-    def create(self, validated_data):
-        return Ticket.objects.create(**validated_data)
-
     def update(self, instance, validated_data):
         instance.tittle = validated_data.get('tittle', instance.tittle)
         instance.status = validated_data.get('status', instance.status)
@@ -29,6 +26,3 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ('message_author', 'message', 'time_created', 'ticket')
         read_only_fields = ('message_author', 'time_created', 'ticket')
-
-    def save(self, **validated_data):
-        return Message.objects.create(**validated_data)

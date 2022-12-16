@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from communication.models import Ticket, Message
-from communication.permissions import IsOwnerOfTicket
+from communication.permissions import IsOwnerOfTicket, CanChangeStatus
 from communication.serializers import TicketSerializer, MessageSerializer
 from communication.tasks import send_new_message, email_notification
 
@@ -36,7 +36,7 @@ class TicketsAPIView(GenericAPIView, ListModelMixin, CreateModelMixin):
 class TicketsAPIDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-    permission_classes = [IsOwnerOfTicket | IsAdminUser]
+    permission_classes = [IsOwnerOfTicket | IsAdminUser | CanChangeStatus]
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -45,8 +45,6 @@ class TicketsAPIDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin,
         serializer.save(status=self.request.data['status'])
 
     def put(self, request, *args, **kwargs):
-        if not self.request.user.is_staff:
-            return Response({"Error": "You have no permission to update"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
